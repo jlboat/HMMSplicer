@@ -225,19 +225,26 @@ PATH_TO_BOWTIE = "bowtie"
 # If HMMSplicer is NOT run from the install folder, then this file name will have to be
 # adjusted to the full path of the install folder.
 HMM_INITIAL_NAME = "initialHMM.txt"
+```
 
 ---
 
 6.  Usage Examples
 
 * Command line used for A. thaliana analysis in the manuscript:
-    ```python runHMM.py -o /Volumes/scratch/hmmSplicerTests/cress/al_Jan5 -g /Users/Shared/data/arabidopsis/allchr.fa -i /Volumes/mirror/SRX002554/allsix.fastq -j 5 -k 6000 -p 4 -d True```
+```
+python runHMM.py -o /Volumes/scratch/hmmSplicerTests/cress/al_Jan5 -g /Users/Shared/data/arabidopsis/allchr.fa -i /Volumes/mirror/SRX002554/allsix.fastq -j 5 -k 6000 -p 4 -d True
+```
 
 * Command line used for H. sapiens analysis in the manuscript:
-    ```python runHMM.py -o /Volumes/scratch/hmmSplicerTests/human/al_Jan27 -i /Volumes/mirror/SRX011550/both.fastq -g /Users/Shared/data/human/chromFa/allchr.unmasked.fa -j 5 -k 80000 -p 4 -d True -r True```
+```
+python runHMM.py -o /Volumes/scratch/hmmSplicerTests/human/al_Jan27 -i /Volumes/mirror/SRX011550/both.fastq -g /Users/Shared/data/human/chromFa/allchr.unmasked.fa -j 5 -k 80000 -p 4 -d True -r True
+```
 
 * Command line used for P. falciparum analysis in the manuscript:
-    ```python runHMM.py -o /Volumes/scratch/hmmSplicerTests/pf/al_Jan27/ -j 5 -k 1000 -g /Users/Shared/data/plasmodium_downloads/falciparum/PfalciparumGenomic_PlasmoDB-6.0.chrNames.fa -i /Volumes/mirror/SRX001454/allfour.bcRemoved.fastq -p 4 -d True```
+```
+python runHMM.py -o /Volumes/scratch/hmmSplicerTests/pf/al_Jan27/ -j 5 -k 1000 -g /Users/Shared/data/plasmodium_downloads/falciparum/PfalciparumGenomic_PlasmoDB-6.0.chrNames.fa -i /Volumes/mirror/SRX001454/allfour.bcRemoved.fastq -p 4 -d True
+```
 
 * Running with shorter reads than recommended
 The HMMSplicer algorithm requires that read-halves be able to align relatively uniquely within the genome.  The exact size requirement can vary depending on the size and complexity of the genome, but, as an example, reads less than 40 bp long do not perform as well when aligning to the human genome.  If your reads are relatively short (less than 45 bp for human, less than 40 bp for smaller genomes such as P. falciparum), I recommend trying HMMSplicer with the following adjustments to configVals.py:
@@ -365,7 +372,6 @@ scoreJunctions.measureSpecificityUsingDict("/Volumes/backup2/hsExample/junction.
 # 2564 overlapped but 256 did not.  90% overlapped
 # 90.921985815602838
 ```
-
 
 Wrapper Specifics:
 ---
