@@ -27,7 +27,7 @@ Known and Novel Splice Junctions in RNA-Seq Data.  PLoS One. 2010 Nov 8;5(11):e1
 
 HMMSplicer was developed on Mac OSX.  Limited tests have been performed successfully on Linux, Unix, and Windows.
 
-===============================================================================
+---
 
 2.  Quick setup
 
@@ -38,43 +38,44 @@ HMMSplicer was developed on Mac OSX.  Limited tests have been performed successf
 * Download HMMSplicer
 
 * Open a terminal window and change into the directory you want to be the parent for the code:
-      cd ~/software/
+      ```cd ~/software/```
 
-* Clone HMMSplicer 
-      git clone https://github.com/jlboat/HMMSplicer
+* Clone HMMSplicer
+      ```git clone https://github.com/jlboat/HMMSplicer```
 
 * Change directory into the hmmSplicer directory 
-      cd HMMSplicer
+      ```cd HMMSplicer```
 
 * Set up hmmSplicer to be able to run bowtie.  Do one of the following:
-      option 1:  Edit HMMSplicer/configVals.py, variable "PATH_TO_BOWTIE" to the 
+    - option 1:  Edit HMMSplicer/configVals.py, variable "PATH_TO_BOWTIE" to the 
                      full path to bowtie (e.g. '/Users/mdimon/software/bowtie-0.12.3/bowtie'
                      for Mac or 'C:\software\bowtie-0.12.3\bowtie' for Windows)
-      option 2:  Add bowtie to your path.  For Mac, either copy (or sym-link) the
+    - option 2:  Add bowtie to your path.  For Mac, either copy (or sym-link) the
                      executable to /usr/local/bin or by add the full path to bowtie 
                      to your PATH (e.g. 
                      export PATH=$PATH:/Users/mdimon/software/bowtie-0.12.3).  For Windows,
                      you can add the full path to bowtie to your PATH environment variable.
 
 * To run HMMSplicer, type "python runHMM.py".  Running without any options will print a help message with the required and optional parameters
-      python runHMM.py
+      ```python runHMM.py```
 
 * see "Typical Set up for an organism" (below) for instructions on preparing a genome for HMMSplicer.
 
-===============================================================================
+---
 
 3.  Running test set
 
 HMMSplicer provides a small test dataset along with the P. falciparum genome (a relatively small 23 MB genome).  To test your installation, you can run HMMSplicer on this dataset.  The dataset is the first 25,000 reads from the SRX001454 dataset, which are randomly scattered across the P. falciparum transcriptome.
 
 * cd into the HMMSplicer directory:
-      cd ~/software/HMMSplicer/
+      ```cd ~/software/HMMSplicer/```
 
 * run the test set:
-      $ python runHMM.py -o pfTest/results/ -i pfTest/sraSRX001454_partial.fastq -g pfTest/pfGenome.fa -j 10 -k 1000
+      ```python runHMM.py -o pfTest/results/ -i pfTest/sraSRX001454_partial.fastq -g pfTest/pfGenome.fa -j 10 -k 1000```
 
 * Check the results:
     HMMSplicer took 15 minutes to run with a single processor on the test machine (a Mac Pro).  The output is:
+```
       15:24:39 03/01/10: Building bowtie index
  [... bowtie output related to building index ]
       15:25:37 03/01/10: Running bowtie
@@ -116,6 +117,7 @@ HMMSplicer provides a small test dataset along with the P. falciparum genome (a 
       15:39:37 03/01/10: Filtering for GT-AG
       15:39:37 03/01/10: Collapsing junctions
       15:39:37 03/01/10: Done.
+```
 
 The important files are junction.final.bed and junction.nonCanonical.bed.
 * junction.final.bed:  The found junctions that match the canonical splice sites of GT-AG and GC-AG.  There are 36 junctions returned.
@@ -153,6 +155,7 @@ The Broad Institute's IGV is a great alternative to the UCSC Genome Browser, esp
 
 5.  Custom configurations and parameters
 Command Line Parameters:
+```
         -o    output directory
         -i    input fastq-format reads
         -g    input genome in fasta format
@@ -176,49 +179,51 @@ Command Line Parameters:
                  (bowtie default)
         -r    large genome.  Required for large genomes (e.g. human) when running 
                   multiple processors.  Default=False
+```
 
 ConfigVals:
 * ConfigVals.py contains configuration variables that are more rarely changed than those listed as command line parameters.  These variables are:
-// the number mismatches allowed in bowtie when matching each read-half
+```
+# the number mismatches allowed in bowtie when matching each read-half
 MISMATCHES_PER_HALF_BT_ANCHOR = 2
 
-// the maximum number of hits allowed for a read-half before all matches are dropped (the read-half is considered a repeat match)
+# the maximum number of hits allowed for a read-half before all matches are dropped (the read-half is considered a repeat match)
 MAX_SEED_REPEATS = 50
 
-// the number of mismatches allowed in the second half for it to be considered a 'match'
+# the number of mismatches allowed in the second half for it to be considered a 'match'
 SECOND_HALF_MM_ALLOWED = 3
 
-// If there are two best matches for an intron and one is less than this amount long
-// and the second is more than this many bp long then the first one is considered a 
-// best match.  If both are less than this many bp long than the half 'cannot be matched'
-// and no junction is selected, unless the read is able to be rescued by another splice
-// junction at the same location.
-//ECOND_HALF_ALT_INTRON = 1000
-//
-// the minimum difference between two scores for the junctions to be considered as having the
-// 'same score'.  Two junctions in different places with the same score are considered duplicates
-// and only included if the duplicate flag is on.  Two junctions in different places with different
-// scores are not considered as duplicates and only the top scoring junction is retained.
+# If there are two best matches for an intron and one is less than this amount long
+# and the second is more than this many bp long then the first one is considered a 
+# best match.  If both are less than this many bp long than the half 'cannot be matched'
+# and no junction is selected, unless the read is able to be rescued by another splice
+# junction at the same location.
+#ECOND_HALF_ALT_INTRON = 1000
+#
+# the minimum difference between two scores for the junctions to be considered as having the
+# 'same score'.  Two junctions in different places with the same score are considered duplicates
+# and only included if the duplicate flag is on.  Two junctions in different places with different
+# scores are not considered as duplicates and only the top scoring junction is retained.
 MIN_SCORE_DIFF = 20
 
-// the number of reads used in training the HMM
+# the number of reads used in training the HMM
 HMM_TRAINING_SIZE = 10000
 
-// the splice sites to wiggle to.  The reverse complement will automatically be included also.
-// sites will be searched in the order given.  For example, if the default wiggle is 5 bp and
-// the junction can either wiggle to GT-AG that is 4 bp away or to GC-AG that is 1 bp away,
-// the GT-AG site will be selected if GT-AG is listed before GC-AG in the list.
+# the splice sites to wiggle to.  The reverse complement will automatically be included also.
+# sites will be searched in the order given.  For example, if the default wiggle is 5 bp and
+# the junction can either wiggle to GT-AG that is 4 bp away or to GC-AG that is 1 bp away,
+# the GT-AG site will be selected if GT-AG is listed before GC-AG in the list.
 WIGGLE_SPLICE_SITES = ["GT-AG", "GC-AG", "AT-AC"]
 
-// the splice sites considered 'good'.  Add both the splice junction and it's reverse complement ("GT-AG" and "CT-AC")
+# the splice sites considered 'good'.  Add both the splice junction and it's reverse complement ("GT-AG" and "CT-AC")
 SPLICE_SITES = ["GT-AG", "CT-AC", "GC-AG", "CT-GC"]
 
-// The program name you would type on the command line to run bowtie
+# The program name you would type on the command line to run bowtie
 PATH_TO_BOWTIE = "bowtie"
 
-// The initial HMM values, before training
-// If HMMSplicer is NOT run from the install folder, then this file name will have to be
-// adjusted to the full path of the install folder.
+# The initial HMM values, before training
+# If HMMSplicer is NOT run from the install folder, then this file name will have to be
+# adjusted to the full path of the install folder.
 HMM_INITIAL_NAME = "initialHMM.txt"
 
 ---
@@ -226,18 +231,20 @@ HMM_INITIAL_NAME = "initialHMM.txt"
 6.  Usage Examples
 
 * Command line used for A. thaliana analysis in the manuscript:
-    python runHMM.py -o /Volumes/scratch/hmmSplicerTests/cress/al_Jan5 -g /Users/Shared/data/arabidopsis/allchr.fa -i /Volumes/mirror/SRX002554/allsix.fastq -j 5 -k 6000 -p 4 -d True
+    ```python runHMM.py -o /Volumes/scratch/hmmSplicerTests/cress/al_Jan5 -g /Users/Shared/data/arabidopsis/allchr.fa -i /Volumes/mirror/SRX002554/allsix.fastq -j 5 -k 6000 -p 4 -d True```
 
 * Command line used for H. sapiens analysis in the manuscript:
-    python runHMM.py -o /Volumes/scratch/hmmSplicerTests/human/al_Jan27 -i /Volumes/mirror/SRX011550/both.fastq -g /Users/Shared/data/human/chromFa/allchr.unmasked.fa -j 5 -k 80000 -p 4 -d True -r True
+    ```python runHMM.py -o /Volumes/scratch/hmmSplicerTests/human/al_Jan27 -i /Volumes/mirror/SRX011550/both.fastq -g /Users/Shared/data/human/chromFa/allchr.unmasked.fa -j 5 -k 80000 -p 4 -d True -r True```
 
 * Command line used for P. falciparum analysis in the manuscript:
-    python runHMM.py -o /Volumes/scratch/hmmSplicerTests/pf/al_Jan27/ -j 5 -k 1000 -g /Users/Shared/data/plasmodium_downloads/falciparum/PfalciparumGenomic_PlasmoDB-6.0.chrNames.fa -i /Volumes/mirror/SRX001454/allfour.bcRemoved.fastq -p 4 -d True
+    ```python runHMM.py -o /Volumes/scratch/hmmSplicerTests/pf/al_Jan27/ -j 5 -k 1000 -g /Users/Shared/data/plasmodium_downloads/falciparum/PfalciparumGenomic_PlasmoDB-6.0.chrNames.fa -i /Volumes/mirror/SRX001454/allfour.bcRemoved.fastq -p 4 -d True```
 
 * Running with shorter reads than recommended
 The HMMSplicer algorithm requires that read-halves be able to align relatively uniquely within the genome.  The exact size requirement can vary depending on the size and complexity of the genome, but, as an example, reads less than 40 bp long do not perform as well when aligning to the human genome.  If your reads are relatively short (less than 45 bp for human, less than 40 bp for smaller genomes such as P. falciparum), I recommend trying HMMSplicer with the following adjustments to configVals.py:
+```
 MISMATCHES_PER_HALF_BT_ANCHOR = 1 
 MAX_SEED_REPEATS = 25
+```
 
 ---
 
@@ -323,11 +330,10 @@ Interpreter Specifics:
 The nice thing about the interpreter, especially for larger genomes such as mouse and human, is that you can load in the data structures once and then play around with different settings.  For example, the first part of the example for the interpreter demonstrates how you can use different score thresholds to affect specificity and sensitivity in your HMMSplicer results.  It can take a long time to load in the library of known splice variants (the human one took me about 10-20 minutes, as I recall), but then each filtering / measuring command is very fast.
 
 Here's a transcript of an example interpreter session:
-```python```
-Python 2.6.2 (r262:71600, Apr 16 2009, 09:17:39) 
-[GCC 4.0.1 (Apple Computer, Inc. build 5250)] on darwin
-Type "help", "copyright", "credits" or "license" for more information.
 ```python
+# Python 2.6.2 (r262:71600, Apr 16 2009, 09:17:39) 
+# [GCC 4.0.1 (Apple Computer, Inc. build 5250)] on darwin
+# Type "help", "copyright", "credits" or "license" for more information.
 import hmmUtils
 import processJunctions
 import scoreJunctions
@@ -366,16 +372,18 @@ Wrapper Specifics:
 For the wrapper example, I'm going to assume we've decided on a score threshold and the goal is to print out some statistics and generate a set of files to upload to the UCSC genome browser.  
 
 Set up for wrapperScript.py:
-BEFORE doing anything -- python can't find hmmUtils
-```echo $PYTHONPATH```
-/Users/mdimon/src:/Users/mdimon/src/lab
-mdimon$ python wrapperScript.py 
-Traceback (most recent call last):
-  File "wrapperScript.py", line 1, in <module>
-    import hmmUtils
-ImportError: No module named hmmUtils
-ADD hmmSplicer to your python path
-```export PYTHONPATH=$PYTHONPATH:/Users/mdimon/src/hmmSplicer```
+```
+# BEFORE doing anything -- python can't find hmmUtils
+echo $PYTHONPATH
+# /Users/mdimon/src:/Users/mdimon/src/lab
+python wrapperScript.py 
+# Traceback (most recent call last):
+#   File "wrapperScript.py", line 1, in <module>
+#     import hmmUtils
+# ImportError: No module named hmmUtils
+# ADD hmmSplicer to your python path
+export PYTHONPATH=$PYTHONPATH:/Users/mdimon/src/hmmSplicer
+```
 
 Here's what the wrapper.py script looks like:
 
@@ -404,24 +412,23 @@ scoreHistogram.scoreHistogram("/Volumes/backup2/hsExample/junction.filter800.nov
 The files are generated as expected and the analysis information (print statements) get printed to the command line
  (the output skips the scoreHistogram results because they are long):
 
-```python wrapperScript.py```
-Specificity for score filter 800
-2564 overlapped but 256 did not.  90% overlapped
+```
+python wrapperScript.py
+# Specificity for score filter 800
+# 2564 overlapped but 256 did not.  90% overlapped
+```
 
 ---
 
 9.  Changes per version
 
 9/12/2022: Version 1.0.0
-    - Conversion of scripts for Python 3
+* Conversion of scripts for Python 3
 
 11/23/2010: Version 0.9.5
-    - If the user chooses to delete temporary files then they will be deleted 
-       as soon as they are no longer needed, instead of waiting until the end of 
-       the run.
-    - Improved description of how to use the extra script tools (i.e. section 8 above)
-    - Included the scoreHistograms.py module
-    - Bug fix in scoreJunctions.measureSpecificity to correctly create BED files for 
-       junctions that match and don't match known junctions.
-    - Improved the handling of multiple processor jobs (without large genomes)
+* If the user chooses to delete temporary files then they will be deleted as soon as they are no longer needed, instead of waiting until the end of the run.
+* Improved description of how to use the extra script tools (i.e. section 8 above)
+* Included the scoreHistograms.py module
+* Bug fix in scoreJunctions.measureSpecificity to correctly create BED files for junctions that match and don't match known junctions.
+* Improved the handling of multiple processor jobs (without large genomes)
 
