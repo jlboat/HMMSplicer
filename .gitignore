@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Test results
+pfTest/results/
+pfTest/pfGenome.1.ebwt
+pfTest/pfGenome.2.ebwt
+pfTest/pfGenome.3.ebwt
+pfTest/pfGenome.4.ebwt
+pfTest/pfGenome.rev.1.ebwt
+pfTest/pfGenome.rev.2.ebwt

@@ -55,16 +55,13 @@ import sys
 import hmmErrors
 
 # major version number checking
-# if sys.version_info[0] == (3):
-#     raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python version 3.x yet.")
-# 
-# if sys.version_info[:2] < (2, 5):
-#     raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python versions before 2.5.")
+if sys.version_info[0] != (3):
+    raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python version 2.")
 
 try:
     import numpy
 except:
-    raise hmmErrors.InvalidPythonVersion("\n\nUnable to import numpy.  Please download and install numpy 1.3.0 (http://sourceforge.net/projects/numpy/files/)")
+    raise hmmErrors.InvalidPythonVersion("\n\nUnable to import numpy.  Please download and install numpy")
 
 import time
 import subprocess
@@ -86,7 +83,6 @@ import hmmUtils
 import configVals
 
 
-
 # Defaults for the values which can be adjusted by input parameters
 DEFAULT_ANCHOR_SIZE = 8
 DEFAULT_MIN_INTRON_SIZE = 5
@@ -99,6 +95,7 @@ PHRED_QUALITY = 0
 SOLEXA_OLD_QUALITY = 1
 SOLEXA_NEW_QUALITY = 2
 COLORSPACE = 3
+
 
 def main(argv=None):
     """The starting point for the code.  Parses the arguments, verifies file paths are valid, then
@@ -370,7 +367,8 @@ def doSetup(outputDir, inputFastq, inputGenome, tmpDir, inputBowtie, isColorspac
         buildBowtie(logfile, inputGenome, inputBowtie, isColorspace)
         
     return logfile
-    
+   
+
 def verifyOneFile(fileToCheck, variableName, paramLetter):
     """Verifies that one file exists and errors out with nice message if the file doesn't exist."""
     if not os.path.isfile(fileToCheck):
@@ -379,7 +377,8 @@ def verifyOneFile(fileToCheck, variableName, paramLetter):
         print()
         print(HELP_STRING)
         sys.exit(1)
-        
+
+
 def verifyQualityType(inputFastq, qualityFormat):
     """Verifies that the quality offset is correct."""
     # go through the first 50 quality values and check that the integers are in the expected range
@@ -410,7 +409,8 @@ def verifyQualityType(inputFastq, qualityFormat):
                     raise hmmErrors.InvalidQuality("Found an illegal quality value of %s in %s (quality string: %s, position: %s).\nAre you sure the quality flag is set right?" % (x, titleStr, qualityStr, i))
 
     return readLength
-    
+
+
 def buildBowtie(logfile, inputGenome, bowtiePrefix, isColorspace):
     """Builds the bowtie index from the inputGenome."""
     
@@ -596,7 +596,7 @@ def runHMM(outputDir, inputFastq, inputGenome, doCollapse, tmpDir, inputBowtie, 
     else:
         # break seed file into # processors sections.
         printStatus("Running HMM and matching second half")
-        numSeedsPerFile = numSeeds / numProcessors
+        numSeedsPerFile = int(numSeeds / numProcessors)
         seedFileName = tmpDir + "hmm.part%s.seed"
         noJunctionName = tmpDir + "hmm.noJunction.part%s.dbf"
         multJunctionName = tmpDir + "hmm.multMatch.part%s.dbf"
@@ -796,12 +796,13 @@ def runHMM(outputDir, inputFastq, inputGenome, doCollapse, tmpDir, inputBowtie, 
 
 def printStatus(msg):
     print("%s: %s" % (time.strftime("%X %x"), msg))
-    
+
+
 def log(f, msg):
     f.write("%s: %s\n" % (time.strftime("%X %x"), msg))
     f.flush()
 
-    
+
 def logParams(logfile, outputDir, inputFastq, qualityFormat, inputGenome, doCollapse, tmpDir, inputBowtie,
            minIntron, maxIntron, numProcessors, wiggleAmount, filterToGtAg, 
            scoreFilterMultiple, scoreFilterSingle, includeDuplicates,
@@ -862,7 +863,8 @@ class hmmSplicerJob:
         
         self._started = False
         self._done = False
-        
+
+
     def start(self):
         if not self._started:
             self._started = True
@@ -872,7 +874,8 @@ class hmmSplicerJob:
             self._job.start() 
             # for testing
             #self._run(self._donePipeIn, self._resultsPipeIn)
-    
+
+
     def isDone(self):
         if not self._started:
             return False
@@ -889,7 +892,8 @@ class hmmSplicerJob:
                 self._done = True
         
         return True
-    
+
+
     def _run(self, donePipeIn, resultsPipeIn):
         #printStatus("Running HMM %s" % (self.jobNum))
         junctionHMM.runHMM(self.seedFile, self.trainedHMM, self.noJunction, self.smallJunction, self.initialJunction, self.anchorSize)
@@ -911,7 +915,7 @@ class hmmSplicerJob:
 #    printStatus("Matching second half")
 #    junctionHMM.matchSecondHalf(initialJunction, genomeDict, noMatch, multJunction, junctionBed, junctionIndel, minIntron, 
 #                               maxIntron, wiggleAmount, readLength)
-#   print "Done with runAndMatch"
+#   print("Done with runAndMatch")
     
         
 #def cb(r): #optional: callback function
