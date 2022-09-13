@@ -24,7 +24,7 @@
 # Author: Michelle Dimon, May 2009
 #
 
-from types import StringTypes
+#from types import StringTypes
 import random
 import string
 import hmmErrors
@@ -44,11 +44,11 @@ from math import log
 def convertQualityStr(strVersion, offset=33):
     """Converts a quality string to a list of integers.
     an offset of 33 is Phred style and an offet of 64 is Solexa style"""
-    return map( lambda x: ord(x)-offset, strVersion )
+    return [ord(x)-offset for x in strVersion]
 
 def convertToQualityStr(intList, offset=33):
     """Converts a list of integers to a quality string."""
-    return "".join( map(lambda x: chr(x+offset), intList) )
+    return "".join( [chr(x+offset) for x in intList] )
 
 def convertSolexaToPhred(solexaQual):
 
@@ -220,7 +220,7 @@ def complement(seq,transl=None):
     """Return complement of seq.
     Original code from Kael and Dale.
     """
-    transl = string.maketrans('aAcCgGtTnNxX-\t\n ','tTgGcCaAnNxX-\t\n ')
+    transl = bytes.maketrans(b'aAcCgGtTnNxX-\t\n ',b'tTgGcCaAnNxX-\t\n ')
     compl = seq.translate(transl)
     return compl
 
@@ -232,7 +232,7 @@ def randomlySelectFromFile(inputFile, outputFile, numToSelect, numLines):
     """
     
     # pick 'numToSelect' numbers from range(0, numLines)
-    linesToUse = random.sample(xrange(numLines), numToSelect)
+    linesToUse = random.sample(range(numLines), numToSelect)
     
     linesDict = {}
     for lineNum in linesToUse:
@@ -242,7 +242,7 @@ def randomlySelectFromFile(inputFile, outputFile, numToSelect, numLines):
     count = 0
     out = open(outputFile, "w")
     for line in open(inputFile):     
-        if linesDict.has_key(count):
+        if count in linesDict:
             out.write(line)
         count += 1
         
@@ -256,7 +256,7 @@ def randomlySelectFromFastqFile(inputFastq, outputFile, numToSelect, numRecords,
     """
     
     # pick 'numToSelect' numbers from range(0, numLines)
-    linesToUse = random.sample(xrange(numRecords), numToSelect)
+    linesToUse = random.sample(range(numRecords), numToSelect)
     
     linesDict = {}
     for lineNum in linesToUse:
@@ -267,7 +267,7 @@ def randomlySelectFromFastqFile(inputFastq, outputFile, numToSelect, numRecords,
     out = open(outputFile, "w")
     if useFasta:
         for (title, seq) in FastaIterator(inputFastq):
-            if linesDict.has_key(count):
+            if count in linesDict:
                 if startPos != None:
                     seq = seq[startPos:]
                 if stopPos != None:
@@ -276,7 +276,7 @@ def randomlySelectFromFastqFile(inputFastq, outputFile, numToSelect, numRecords,
             count += 1
     else:
         for (title, seq, qual) in FastqIterator(inputFastq):
-            if linesDict.has_key(count):
+            if count in linesDict:
                 if startPos!= None:
                         seq = seq[startPos:]
                 if stopPos != None:
@@ -332,13 +332,13 @@ def divideReads(inputFastq, outputFastq, solexaFormat=False):
             qualityStr = convertToQualityStr( convertQualityStr(qualityStr, 64) )
         titleStr = titleStr.replace("|", "_")
         if len(seqStr) % 2 == 0:
-            le = len(seqStr)/2
+            le = int(len(seqStr)/2)
             out.write("@%s|First|%s|%s\n%s\n+\n%s\n" % (titleStr, seqStr[le:], qualityStr[le:], seqStr[:le], qualityStr[:le])) 
             out.write("@%s|Second|%s|%s\n%s\n+\n%s\n" % (titleStr, seqStr[:le], qualityStr[:le], seqStr[le:], qualityStr[le:]))
         else:
             # for reads of uneven length, use a smaller half but include the extra base in the fastq title.  i.e. if
             # the read is 45 bp long, each half is only 22 bases, but have the other 23 bases in the title 
-            le = len(seqStr)/2
+            le = int(len(seqStr)/2)
             out.write("@%s|First|%s|%s\n%s\n+\n%s\n" % (titleStr, seqStr[le:], qualityStr[le:], seqStr[:le], qualityStr[:le])) 
             out.write("@%s|Second|%s|%s\n%s\n+\n%s\n" % (titleStr, seqStr[:le+1], qualityStr[:le+1], seqStr[le+1:], qualityStr[le+1:]))
             
@@ -443,15 +443,15 @@ def FastaIterator(fh):
                 preLines.append(l)
 
 
-    if type(fh) in StringTypes:
-        fh = file(fh)
+    if type(fh) is str: #n StringTypes:
+        fh = open(fh)
     
     preLines,nextTitleLine =readTotitle(fh)
 
     while nextTitleLine != None:
         title = nextTitleLine[1:].rstrip()
         preLines,nextTitleLine=readTotitle(fh)
-        yield (title,''.join(map(lambda x: x.rstrip(),preLines)))
+        yield (title,''.join([x.rstrip() for x in preLines]))
 
         
 def FastqIterator(fh):
@@ -471,8 +471,8 @@ def FastqIterator(fh):
             else:
                 preLines.append(l)
 
-    if type(fh) in StringTypes:
-        fh = file(fh)
+    if type(fh) is str: #n StringTypes:
+        fh = open(fh)
     
     preLines,nextTitleLine =readTotitle(fh,'@')
 
@@ -481,9 +481,9 @@ def FastqIterator(fh):
         preLines,nextTitleLine=readTotitle(fh,'+')
         qualTitle = nextTitleLine[1:].rstrip()
         if len(qualTitle.strip()) > 0 and seqTitle != qualTitle:
-            print seqTitle
-            print preLines
-            print qualTitle
+            print(seqTitle)
+            print(preLines)
+            print(qualTitle)
             raise hmmErrors.InvalidFastq("Error in parsing: @title sequence entry must be immediately followed by corresponding +title quality entry.")
         seqLines = preLines
         qualLines = []
@@ -587,7 +587,7 @@ def getCoveragePerBpVariable(wigFileName):
         start = int(start)
         stop = int(stop)
         
-        if not d.has_key(chr):
+        if chr not in d:
             d[chr] = {}
         
         for i in range(start, stop+1):
@@ -659,7 +659,7 @@ def createHMMfile(outputHMMname):
 def writeHMMToFile(logfile, hmmFile):
     
     hmm = hmmWithQuality.HMM([], [], 0)
-    hmm.loadHMM( open(hmmFile) )
+    hmm.loadHMM( open(hmmFile, 'rb') )
     
     logfile.write(hmm.getDumpStr())
     logfile.flush()
@@ -674,12 +674,12 @@ def checkFastqReadLengths(inputFastq):
         #if count > 50:
         #    break
         thisSize = len(seq)
-        if not sizes.has_key(thisSize):
+        if thisSize not in sizes:
             sizes[thisSize] = 0
         sizes[thisSize] += 1
         
-    for k, v in sizes.iteritems():
-        print k, "=", v
+    for k, v in sizes.items():
+        print(k, "=", v)
 
 def getMinMaxIntron(inputBed, percentBetweenLow, percentBetweenHigh):
     """Analyzes a genome annotation to determine basic intron information. 
@@ -714,13 +714,13 @@ def getMinMaxIntron(inputBed, percentBetweenLow, percentBetweenHigh):
             minIntron = min(minIntron, intronSize)
             maxIntron = max(maxIntron, intronSize)
             
-    print "The largest intron was %s and the smallest intron was %s" % (maxIntron, minIntron)
-    print "There were %s introns total in %s genes, and %s (%s%%) were between %s and %s (inclusive)" % (countTotal, numGenes, countBetween, 
-                                        (countBetween*100.0/countTotal), percentBetweenLow, percentBetweenHigh)
-    print "The average intron size is %.2f" % ( float(sum(sizeList))/len(sizeList))
-    print "Average number of introns per gene is %.2f" % ( float(countTotal) / numGenes) 
+    print("The largest intron was %s and the smallest intron was %s" % (maxIntron, minIntron))
+    print("There were %s introns total in %s genes, and %s (%s%%) were between %s and %s (inclusive)" % (countTotal, numGenes, countBetween, 
+                                        (countBetween*100.0/countTotal), percentBetweenLow, percentBetweenHigh))
+    print("The average intron size is %.2f" % ( float(sum(sizeList))/len(sizeList)))
+    print("Average number of introns per gene is %.2f" % ( float(countTotal) / numGenes)) 
 
-    print "Average exon size is %.2f" % ( float(sum(exonSizeList)) / len(exonSizeList))
+    print("Average exon size is %.2f" % ( float(sum(exonSizeList)) / len(exonSizeList)))
     
 
 def getFastaFromBed(inputBed, inputGenomeFasta, outputGeneFasta, chrToUse=None):
@@ -773,17 +773,17 @@ def graphQualityPerPosition(inputFastq):
             if q < 0 or q > 40:
                 raise hmmErrors.InvalidQualityException("Invalid quality value %s at position %s of %s in %s" % (q, i, qualityStr, titleStr))
             
-            if not histD.has_key(i):
+            if i not in histD:
                 histD[i] = [0]*41
                 
             histD[i][q] += 1
     
-    print "Found %s records" % (count)
-    print "Histogram of quality score per position"
-    allk = histD.keys()
+    print("Found %s records" % (count))
+    print("Histogram of quality score per position")
+    allk = list(histD.keys())
     allk.sort()
     for k in allk:
-        print "%s|" % k, "|".join(str(x) for x in histD[k])
+        print("%s|" % k, "|".join(str(x) for x in histD[k]))
         
         
         
@@ -816,12 +816,12 @@ def _readBowtieInput(inputFile):
         start = int(start)
         end = start + len(seq)  
         
-        if not allCounts.has_key(chrom):
+        if chrom not in allCounts:
             allCounts[chrom] = {}
                                                                   
         
         for i in range(start, end):
-            if allCounts[chrom].has_key(i):
+            if i in allCounts[chrom]:
                 allCounts[chrom][i] += 1
             else:
                 allCounts[chrom][i] = 1
@@ -833,14 +833,14 @@ def _writeWiggle(trackName, trackDescription, allCounts, wigOut):
     wigFile = open(wigOut, "w")
     wigFile.write("track type=wiggle_0 name='%s' description='%s' visibility=2\n" % (trackName,
                                                               trackDescription))
-    for name in allCounts.keys():
+    for name in list(allCounts.keys()):
         start = 0
         end = max(allCounts[name].keys())
 
         wigFile.write("fixedStep chrom=%s start=%s step=1 span=1\n" % (name, start+1))
 
         for i in range(start, end):
-            if allCounts[name].has_key(i):
+            if i in allCounts[name]:
                 curValue = allCounts[name][i]
             else:
                 curValue = 0

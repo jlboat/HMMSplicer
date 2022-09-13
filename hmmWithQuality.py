@@ -39,8 +39,7 @@ from numpy import array, ones, zeros, add, cumsum, searchsorted, \
      product, dot, multiply, alltrue, log, equal, newaxis, \
      take, empty_like, allclose, where, sum
 from numpy.random import random
-from exceptions import RuntimeError
-import cPickle
+import pickle
 
 # Display log likelihood every DISPITER iterations while learning
 DISPITER = 100
@@ -90,7 +89,7 @@ def _alpha_scaled(A, Bo, pi):
     scaling_factors[0] = 1./add.reduce(alpha_t)    
     alpha_scaled = zeros( (T, N), float)
     alpha_scaled[0] = alpha_t*scaling_factors[0]
-    for i in xrange(1, T):
+    for i in range(1, T):
         alpha_t = dot(alpha_scaled[i-1], A)*Bo[i]  # (92a)        
         scaling_t = 1./add.reduce(alpha_t)
         scaling_factors[i] = scaling_t
@@ -111,7 +110,7 @@ def _beta_scaled( A, Bo, scale_factors ):
     beta = zeros( (T, N), float )
     tmp = zeros( N, float )
     beta[-1] = ones( N, float ) * scale_factors[-1]         # (24)
-    for t  in xrange( T-2, -1, -1 ):
+    for t  in range( T-2, -1, -1 ):
         multiply( scale_factors[t], Bo[t+1], tmp )
         multiply( tmp, beta[t+1], tmp )
         beta[t] = matrixproduct( A, tmp )    # (25)
@@ -144,7 +143,7 @@ def _update_iter_B( gamma, qualList, obsIndices, B_bar ):
     # in the chain (If we don't it leads to such things as
     # the probability of a fullstop at the end of a sentence
     # is zero!!)
-    for i in xrange(len(obsIndices)):     # (110) numerateur
+    for i in range(len(obsIndices)):     # (110) numerateur
         B_bar[qualList[i], obsIndices[i]] += gamma[i]
         #B_bar[obsIndices[i]] += gamma[i]
 
@@ -163,11 +162,11 @@ def _correct_M( M, k, p ):
     """
     D = equal( add.reduce( M, k ), 0.0)
     if k == 1:
-        for i in xrange(M.shape[0]):
+        for i in range(M.shape[0]):
             if D[i]:
                 M[i, :] = p
     elif k == 0:
-        for i in xrange(M.shape[1]):
+        for i in range(M.shape[1]):
             if D[i]:
                 M[:, i] = p
     else:
@@ -282,43 +281,43 @@ class HMM:
         you need to define __getattr__ __setattr__.
         """
         version = "HMM1.0"
-        cPickle.dump( version, f, 1 )
-        cPickle.dump( saveState, f, 1 )
+        pickle.dump( version, f, 1 )
+        pickle.dump( saveState, f, 1 )
         if saveState:
-            cPickle.dump( self.omega_X, f, 1 )
-            cPickle.dump( self.omega_O, f, 1 )
-        cPickle.dump( self.N, f, 1 )
-        cPickle.dump( self.M, f, 1 )
-        cPickle.dump( self.num_quality_vals, f, 1)
-        cPickle.dump( self.A, f, 1 )
-        cPickle.dump( self.pi, f, 1 )
-        for i in xrange(self.num_quality_vals):
-            for j in xrange(self.M):
-                cPickle.dump( self.B[i, j, :], f, 1 )
+            pickle.dump( self.omega_X, f, 1 )
+            pickle.dump( self.omega_O, f, 1 )
+        pickle.dump( self.N, f, 1 )
+        pickle.dump( self.M, f, 1 )
+        pickle.dump( self.num_quality_vals, f, 1)
+        pickle.dump( self.A, f, 1 )
+        pickle.dump( self.pi, f, 1 )
+        for i in range(self.num_quality_vals):
+            for j in range(self.M):
+                pickle.dump( self.B[i, j, :], f, 1 )
         
     def loadHMM( self, f ):
         """Use this function if you saved your data using
         saveHMM."""
-        version = cPickle.load(f)
+        version = pickle.load(f, encoding='latin1')
         if version == "HMM1.0":
-            saveState = cPickle.load(f)
+            saveState = pickle.load(f, encoding='latin1')
             if saveState:
-                self.omega_X = cPickle.load(f)
-                self.omega_O = cPickle.load(f)
-            self.N = cPickle.load(f)
-            self.M = cPickle.load(f)
-            self.num_quality_vals = cPickle.load(f)
+                self.omega_X = pickle.load(f, encoding='latin1')
+                self.omega_O = pickle.load(f, encoding='latin1')
+            self.N = pickle.load(f, encoding='latin1')
+            self.M = pickle.load(f, encoding='latin1')
+            self.num_quality_vals = pickle.load(f, encoding='latin1')
             if saveState:
                 self.make_indexes()
-            self.A = cPickle.load(f)
-            self.pi = cPickle.load(f)
+            self.A = pickle.load(f, encoding='latin1')
+            self.pi = pickle.load(f, encoding='latin1')
             self.B = zeros( (self.num_quality_vals, self.M, self.N), float, self.ORDER )
-            for i in xrange(self.num_quality_vals):
-                for j in xrange(self.M):
-                    x = cPickle.load(f)
+            for i in range(self.num_quality_vals):
+                for j in range(self.M):
+                    x = pickle.load(f, encoding='latin1')
                     self.B[i, j, :] = x
         else:
-            raise RuntimeError, "File format not recognized"
+            raise RuntimeError("File format not recognized")
 
     def checkHMM(self):
         """This function will asserts if the internal state of the class
@@ -359,7 +358,7 @@ class HMM:
 
     def dump(self):
         """Helper method for debugging"""
-        print self.getDumpStr()
+        print(self.getDumpStr())
         
         
     def getDumpStr(self):
@@ -390,7 +389,7 @@ class HMM:
                 for y in x:
                     vals.append(str(y))
             
-        print "|".join(vals)
+        print("|".join(vals))
         
     def __getinitargs__(self):
         """helper method for pickling"""
@@ -497,7 +496,7 @@ class HMM:
         delta_t = zeros( N, float )
         psi = zeros( (T, N), int )       # (32b)
         # recursion
-        for t in xrange(1, T):
+        for t in range(1, T):
             O_t = obs[t]
             q_t = q[t]
             for j in range(N):
@@ -566,7 +565,7 @@ class HMM:
         N = self.N
         M = self.M
         logB = zeros( (M, N), float)
-        for i in xrange(M):
+        for i in range(M):
             t = self.B[q[i], i, :]
             k = equal(t, 0.0) * SMALLESTFLOAT
             logB[i] = log(k + t)
@@ -608,7 +607,7 @@ class HMM:
         observations sequences
         """
         # remove empty lists
-        m_observations = filter( lambda x: x, m_observations )
+        m_observations = [x for x in m_observations if x]
         setO =  set()   # set of observations        
         K = len( m_observations )
         learning_curve = []
@@ -627,20 +626,20 @@ class HMM:
             obsIndices = self._get_observationIndices(observations)
             obs_list.append( obsIndices )
             setO = setO | set(obsIndices)  # add new elements observed
-        for iter in xrange( 1, maxiter + 1 ):
+        for iter in range( 1, maxiter + 1 ):
             # mtd
             #if impr and iter % 10 == 0:
             #    print iter
             #    self.dump()
             total_likelihood = 0
             for k in range(K):
-                obsIndices = obs_list[k]
-                qualList = m_quals[k]
+                obsIndices = [int(j) for j in obs_list[k]]
+                qualList = [int(j) for j in m_quals[k]]
                 #Bo = take(self.B, obsIndices, 0)
                 # Bo is an array with each state's proba depending on the observations.  
                 # For now, build by hand from both quality and state info
                 Bo = zeros( (len(obsIndices), self.N), float)
-                for i in range( len(obsIndices)):
+                for i in range(len(obsIndices)):
                     Bo[i] = self.B[qualList[i], obsIndices[i]]
                 alpha, scale_factors = self.alpha_scaled( self.A, Bo, self.pi )
                 beta  = self.beta_scaled( self.A, Bo, scale_factors )
@@ -663,10 +662,10 @@ class HMM:
             learning_curve.append( total_likelihood )
             if (iter % dispiter) == 0:
                 if impr:
-                    print "Iter ", iter, " log=", total_likelihood
+                    print("Iter ", iter, " log=", total_likelihood)
             if self._stop_condition( A_bar, pi_bar, B_bar ):
                 if impr:
-                    print 'Converged in %d iterations' % iter
+                    print('Converged in %d iterations' % iter)
                 break
             self.A, A_bar   = A_bar, self.A
             self.B, B_bar   = B_bar, self.B
@@ -678,8 +677,8 @@ class HMM:
             sigma_gamma_B.fill(0)
         else:
             if impr:
-                print "The Baum-Welch algorithm did not converge in",
-                print " %d iterations" % maxiter
+                print("The Baum-Welch algorithm did not converge in", end=' ')
+                print(" %d iterations" % maxiter)
         self._mask()
         # Correct B in case 0 probabilities slipped in
         setO = set(range(self.M)) - setO

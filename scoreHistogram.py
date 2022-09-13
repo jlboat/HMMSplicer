@@ -35,11 +35,11 @@ def scoreHistogram(inputBed, binSize=10):
         pieces = line.split()
         score = float(pieces[4])
         bin = round(score / binSize, 0)
-        if not d.has_key(bin):
+        if bin not in d:
             d[bin] = 0
         d[bin] += 1
 
-    allk = d.keys()
+    allk = list(d.keys())
     allk.sort()
     for k in allk:
-        print k*10, "=", d[k]
+        print(k*10, "=", d[k])

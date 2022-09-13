@@ -55,11 +55,11 @@ import sys
 import hmmErrors
 
 # major version number checking
-if sys.version_info[0] == (3):
-    raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python version 3.x yet.")
-
-if sys.version_info[:2] < (2, 5):
-    raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python versions before 2.5.")
+# if sys.version_info[0] == (3):
+#     raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python version 3.x yet.")
+# 
+# if sys.version_info[:2] < (2, 5):
+#     raise hmmErrors.InvalidPythonVersion("\n\nHMMSplicer does not support Python versions before 2.5.")
 
 try:
     import numpy
@@ -67,7 +67,7 @@ except:
     raise hmmErrors.InvalidPythonVersion("\n\nUnable to import numpy.  Please download and install numpy 1.3.0 (http://sourceforge.net/projects/numpy/files/)")
 
 import time
-import commands
+import subprocess
 from getopt import getopt
 import os
 import glob
@@ -135,19 +135,19 @@ def main(argv=None):
     try:
         optlist, args = getopt(argv[1:], "ho:i:g:a:c:t:b:a:j:k:p:f:w:m:n:q:d:e:r:x:")
     except:
-        print ""
-        print HELP_STRING
+        print("")
+        print(HELP_STRING)
         sys.exit(1)
         
     if len(optlist) == 0:
-        print ""
-        print HELP_STRING
+        print("")
+        print(HELP_STRING)
         sys.exit(1)
         
     for (opt, opt_arg) in optlist:
         if opt == '-h':
-            print ""
-            print HELP_STRING
+            print("")
+            print(HELP_STRING)
             sys.exit(1)
         elif opt == "-o":
             outputDir = opt_arg
@@ -166,9 +166,9 @@ def main(argv=None):
             try:
                 anchorSize = int(opt_arg)
             except ValueError:
-                print "The Anchor Size (-a) value must be an integer."
-                print
-                print HELP_STRING
+                print("The Anchor Size (-a) value must be an integer.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
         elif opt == "-c":
             inputBlat = opt_arg
@@ -176,40 +176,40 @@ def main(argv=None):
             try:
                 minIntron = int(opt_arg)
             except ValueError:
-                print "The Minimum Intron (-i) value must be an integer."
-                print
-                print HELP_STRING
+                print("The Minimum Intron (-i) value must be an integer.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
             if minIntron < 0:
-                print "The Minimum Intron (-i) value cannot be negative."
-                print
-                print HELP_STRING
+                print("The Minimum Intron (-i) value cannot be negative.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)               
         elif opt == "-k":
             try:
                 maxIntron = int(opt_arg)
             except ValueError:
-                print "The Maximum Intron (-j) value must be an integer."
-                print
-                print HELP_STRING
+                print("The Maximum Intron (-j) value must be an integer.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
             if maxIntron < 0:
-                print "The Maximum Intron (-j) value cannot be negative."
-                print
-                print HELP_STRING
+                print("The Maximum Intron (-j) value cannot be negative.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)  
         elif opt == "-p":
             try:
                 numProcessors = int(opt_arg)
             except ValueError:
-                print "The number of Processors (-p) value must be an integer."
-                print
-                print HELP_STRING
+                print("The number of Processors (-p) value must be an integer.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
             if numProcessors < 0:
-                print "The number of Processors (-p) value cannot be negative."
-                print
-                print HELP_STRING
+                print("The number of Processors (-p) value cannot be negative.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)  
         elif opt == "-f":
             filterToGtAg = opt_arg.startswith("T") or opt_arg.startswith("t")
@@ -217,38 +217,38 @@ def main(argv=None):
             try:
                 wiggleAmount = int(opt_arg)
             except ValueError:
-                print "The Wiggle Amount (-w) value must be an integer"
-                print
-                print HELP_STRING
+                print("The Wiggle Amount (-w) value must be an integer")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
             if wiggleAmount < 0:
-                print "The Wiggle Amount (-w) value cannot be negative."
-                print
-                print HELP_STRING
+                print("The Wiggle Amount (-w) value cannot be negative.")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)  
         elif opt == "-m":
             try:
                 scoreFilterMultiple = int(opt_arg)
             except ValueError:
-                print "The Score Filter for Multiple Splice Junctions (-m) value must be an integer"
-                print
-                print HELP_STRING
+                print("The Score Filter for Multiple Splice Junctions (-m) value must be an integer")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
         elif opt == "-n":
             try:
                 scoreFilterSingle = int(opt_arg)
             except ValueError:
-                print "The Score Filter for Single Splice Junctions (-m) value must be an integer"
-                print
-                print HELP_STRING
+                print("The Score Filter for Single Splice Junctions (-m) value must be an integer")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
         elif opt == "-e":
             try:
                 numMMinSeed = int(opt_arg)
             except ValueError:
-                print "The number of mismatches in the first 28 bp of the Second Half Match (-e) must be an integar"
-                print
-                print HELP_STRING
+                print("The number of mismatches in the first 28 bp of the Second Half Match (-e) must be an integar")
+                print()
+                print(HELP_STRING)
                 sys.exit(1)
         elif opt == "-x":
             deleteTmp = opt_arg.startswith("T") or opt_arg.startswith("t")
@@ -273,19 +273,19 @@ def main(argv=None):
         
     # verify the required parameters were set    
     if outputDir == None:
-        print "Output Directory (-o) is a required parameter"
-        print
-        print HELP_STRING
+        print("Output Directory (-o) is a required parameter")
+        print()
+        print(HELP_STRING)
         sys.exit(1)
     elif inputFastq == None:
-        print "Input Fastq (-i) is a required parameter"
-        print
-        print HELP_STRING
+        print("Input Fastq (-i) is a required parameter")
+        print()
+        print(HELP_STRING)
         sys.exit(1)
     elif inputGenome == None:
-        print "Input Genome (-g) is a required parameter"
-        print
-        print HELP_STRING
+        print("Input Genome (-g) is a required parameter")
+        print()
+        print(HELP_STRING)
         sys.exit(1)
     
     # put in defaults for path/genome variables
@@ -374,10 +374,10 @@ def doSetup(outputDir, inputFastq, inputGenome, tmpDir, inputBowtie, isColorspac
 def verifyOneFile(fileToCheck, variableName, paramLetter):
     """Verifies that one file exists and errors out with nice message if the file doesn't exist."""
     if not os.path.isfile(fileToCheck):
-        print "The file '%s' was not found." % (fileToCheck)
-        print "Given as parameter %s (-%s)" % (variableName, paramLetter)
-        print
-        print HELP_STRING
+        print("The file '%s' was not found." % (fileToCheck))
+        print("Given as parameter %s (-%s)" % (variableName, paramLetter))
+        print()
+        print(HELP_STRING)
         sys.exit(1)
         
 def verifyQualityType(inputFastq, qualityFormat):
@@ -698,7 +698,7 @@ def runHMM(outputDir, inputFastq, inputGenome, doCollapse, tmpDir, inputBowtie, 
                 if len(line) > 1:
                     countMult += 1
                     outMult.write(line)
-        print "files combined"
+        print("files combined")
                     
         log(logfile, "Ran HMM and matched second half.  There were %s junctions, %s reads with introns less than the minimum size and %s with multiple second matches" % (countJunc, 
                                                                                                     countSmall, countMult))
@@ -795,7 +795,7 @@ def runHMM(outputDir, inputFastq, inputGenome, doCollapse, tmpDir, inputBowtie, 
 
 
 def printStatus(msg):
-    print "%s: %s" % (time.strftime("%X %x"), msg)
+    print("%s: %s" % (time.strftime("%X %x"), msg))
     
 def log(f, msg):
     f.write("%s: %s\n" % (time.strftime("%X %x"), msg))

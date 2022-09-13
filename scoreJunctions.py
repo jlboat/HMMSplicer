@@ -26,7 +26,7 @@
 
 import processJunctions
 import hmmUtils
-import commands
+import subprocess
 import random
 
 
@@ -80,16 +80,16 @@ def measureSpecificityUsingDict(foundJunctionsBed, ests, wiggle=0, goodFile=None
             pieces[0] = "chr" + str(int(pieces[0].split()[0].split("|")[1].split("_")[1]))
 
         
-        if not found.has_key(pieces[0]):
+        if pieces[0] not in found:
             found[pieces[0]] = {}
         
         leftEdge, rightEdge = hmmUtils.getEdges(int(pieces[1]), pieces[10], pieces[11])
-        if not found[pieces[0]].has_key( (leftEdge,rightEdge) ):
+        if (leftEdge,rightEdge) not in found[pieces[0]]:
             found[pieces[0]][(leftEdge,rightEdge)] = 0
         found[pieces[0]][(leftEdge,rightEdge)] += 1
         
         if goodFile or badFile:
-            if not savedLines.has_key(pieces[0]):
+            if pieces[0] not in savedLines:
                 savedLines[ pieces[0]] = {}
             savedLines[pieces[0]][(leftEdge,rightEdge)] = line
     
@@ -98,13 +98,13 @@ def measureSpecificityUsingDict(foundJunctionsBed, ests, wiggle=0, goodFile=None
         goodOut = open(goodFile, "w")
         badOut = open(badFile, "w")
         
-    for chr, edgeDict in found.iteritems():
-        for (leftEdge, rightEdge) in edgeDict.keys():
+    for chr, edgeDict in found.items():
+        for (leftEdge, rightEdge) in list(edgeDict.keys()):
             foundOne = False
             for x in range(leftEdge-wiggle, leftEdge+wiggle+1):
                 for y in range(rightEdge-wiggle, rightEdge+wiggle+1):
-                    if ests.has_key(chr):
-                        if ests[chr].has_key( (x, y) ):
+                    if chr in ests:
+                        if (x, y) in ests[chr]:
                             foundOne = True
             if foundOne:
                 overlaps += found[chr][(leftEdge,rightEdge)]
@@ -120,11 +120,11 @@ def measureSpecificityUsingDict(foundJunctionsBed, ests, wiggle=0, goodFile=None
                     badOut.write(savedLines[chr][(leftEdge,rightEdge)])
             
     if (noOverlaps + overlaps) > 0:
-        print "%s overlapped but %s did not.  %.2d%% overlapped" % (overlaps, noOverlaps, (overlaps*100.0)/(noOverlaps+overlaps))
+        print("%s overlapped but %s did not.  %.2d%% overlapped" % (overlaps, noOverlaps, (overlaps*100.0)/(noOverlaps+overlaps)))
 
         return (overlaps*100.0) / (noOverlaps + overlaps)
     else:
-        print "No junctions found!"
+        print("No junctions found!")
         return 0
 
 def measureSensitivity(foundJunctionsBed, estJunctionsBed, wiggle=3):
@@ -172,40 +172,40 @@ def measureSensitivityUsingDict(foundJunctionsBed, ests, wiggle=3):
         if pieces[0].startswith("psu|Pf"):
             pieces[0] = "chr" + str(int(pieces[0].split()[0].split("|")[1].split("_")[1]))
         
-        if not found.has_key(pieces[0]):
+        if pieces[0] not in found:
             found[pieces[0]] = {}
 
         #print pieces[1], pieces[10], pieces[11]
         leftEdge, rightEdge = hmmUtils.getEdges(int(pieces[1]), pieces[10], pieces[11])
-        if not found[pieces[0]].has_key( (leftEdge,rightEdge) ):
+        if (leftEdge,rightEdge) not in found[pieces[0]]:
             found[pieces[0]][(leftEdge,rightEdge)] = 0
         found[pieces[0]][(leftEdge,rightEdge)] += 1
     
     # for every est junction, how many of ours cover it
     numJunct = 0
-    for chr, edgeDict in ests.iteritems():
+    for chr, edgeDict in ests.items():
         numJunct += len(edgeDict)
-        for (leftEdge, rightEdge) in edgeDict.keys():
+        for (leftEdge, rightEdge) in list(edgeDict.keys()):
             numFound = 0
             for x in range(leftEdge-wiggle, leftEdge+wiggle+1):
                 for y in range(rightEdge-wiggle, rightEdge+wiggle+1):
-                    if found.has_key(chr):
-                        if  found[chr].has_key( (x, y) ):
+                    if chr in found:
+                        if  (x, y) in found[chr]:
                             numFound += found[chr][(x, y)]
-            if not counts.has_key(numFound):
+            if numFound not in counts:
                 counts[numFound] = 0
             counts[numFound] += 1
             
-    allkeys = counts.keys()
+    allkeys = list(counts.keys())
     allkeys.sort()
     
-    print "Total number of junctions in the dict is: %s" % (numJunct)
+    print("Total number of junctions in the dict is: %s" % (numJunct))
     moreThanZero = 0
     for k in allkeys:
         if k > 0:
             moreThanZero += counts[k]
-        print "%s\t%s" % (k,counts[k])
-    print "total > zero is %s" % moreThanZero
+        print("%s\t%s" % (k,counts[k]))
+    print("total > zero is %s" % moreThanZero)
 
     return moreThanZero
 
@@ -238,13 +238,13 @@ def generateROCcurve(junctionBed, ests, stepSize=100, wiggle=0, ungappedPairDbf=
         try:
             [chr, start, stop, name, score] = line.split()[:5]
         except ValueError:
-            print "2"
+            print("2")
             continue
         score = float(score)
         #score = random.randint(0, 10)
-        if goodNames.has_key(name):
+        if name in goodNames:
             isGood = True
-        elif badNames.has_key(name):
+        elif name in badNames:
             isGood = False
         else:
             continue
@@ -259,23 +259,23 @@ def generateROCcurve(junctionBed, ests, stepSize=100, wiggle=0, ungappedPairDbf=
             
         scoredDict[name] = (score, isGood)
         
-    print "Counted %s good and %s bad" % (countGood, countBad)
+    print("Counted %s good and %s bad" % (countGood, countBad))
     
-    print scores[:3]
+    print(scores[:3])
     scores.sort(reverse=True)
-    print scores[:5]
+    print(scores[:5])
     # use every 100th score
     for x in scores[::stepSize]:
         numGoodAbove = 0
         numBadAbove = 0
-        for k, (score, real) in scoredDict.iteritems():
+        for k, (score, real) in scoredDict.items():
             if score >= x:
                 if real:
                     numGoodAbove += 1
                 else:
                     numBadAbove += 1
                     
-        print x, numGoodAbove, numBadAbove, numGoodAbove / float(countGood) , numBadAbove / float(countBad)
+        print(x, numGoodAbove, numBadAbove, numGoodAbove / float(countGood) , numBadAbove / float(countBad))
         
 def findGoodBadReads(junctionBed, ests, wiggle):
     """Finds 'good' and 'bad' reads, only using the estBed as a guide."""
@@ -291,7 +291,7 @@ def findGoodBadReads(junctionBed, ests, wiggle):
         try:
             [chr, start, stop, name, score, strand, thStart, thStop, rgb, blockCount, blockSizes, blockStarts] = line.split()
         except ValueError:
-            print "1"
+            print("1")
             break
         
         hasEst = testIfEst(ests, chr, int(start), int(blockCount), blockSizes, blockStarts, wiggle)
@@ -339,7 +339,7 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
         else:
             junctionDict[root] = (chr, int(start), strand, score, hasEst)
             
-    print "Read in %s junctions" % (len(junctionDict))
+    print("Read in %s junctions" % (len(junctionDict)))
     #print junctionDict.keys()[:5]
             
     # go through the ungapped file and, if the root name is found in the junction dict, add to new dict (pairs) of root name: (chrJ, 
@@ -352,7 +352,7 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
         [name, seq, qual, status, qStart, qEnd, chr, chrStart, chrEnd, strand, 
                     blockCount, blockSizes, blockStarts] = line.split()
         root = name.split("#")[0]
-        if junctionDict.has_key(root):
+        if root in junctionDict:
             if strand == "F":
                 pairsDict[root] = (junctionDict[root][0], junctionDict[root][1], junctionDict[root][2], junctionDict[root][3],
                               chr, int(chrEnd), "+", junctionDict[root][4])
@@ -362,7 +362,7 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
             del junctionDict[root]
             
     # print out the number of reads still in the junction dict.
-    print "After filling the pairs dict, there were %s junctions still remaining in the junction dict (unmapped paired end)" % (len(junctionDict))
+    print("After filling the pairs dict, there were %s junctions still remaining in the junction dict (unmapped paired end)" % (len(junctionDict)))
     
     # for each read in the pairs dict, judge if good or not.  build new dictionary (scored) of name:(score, isGood) 
     # count unclear as you go, but toss out, don't include is dict.
@@ -378,7 +378,7 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
     countStacked = 0
     countUnclear = 0
     countExcludedForEst = 0 
-    for k, (chrJ, arrowJ, strandJ, scoreJ, chrP, arrowP, strandP, estResult) in pairsDict.iteritems():
+    for k, (chrJ, arrowJ, strandJ, scoreJ, chrP, arrowP, strandP, estResult) in pairsDict.items():
         test = testIfGood(chrJ, arrowJ, strandJ, scoreJ, chrP, arrowP, strandP)
         
         if estResult:
@@ -407,8 +407,8 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
             
         
         
-    print "After scoring, there were %s good, %s unclear, %s stacked, %s excluded for no matching EST and %s bad junctions" % (countGood, countUnclear, countStacked, countExcludedForEst, countBad)
-    print "And there were %s good EST junctions and %s bad ESTjunctions" % (countEstGood, countEstBad)
+    print("After scoring, there were %s good, %s unclear, %s stacked, %s excluded for no matching EST and %s bad junctions" % (countGood, countUnclear, countStacked, countExcludedForEst, countBad))
+    print("And there were %s good EST junctions and %s bad ESTjunctions" % (countEstGood, countEstBad))
     
     goodNames = {}
     badNames = {}
@@ -422,7 +422,7 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
             continue
         
         root = name.split("#")[0]
-        if scoredDict.has_key(root):
+        if root in scoredDict:
             countFoundInScored += 1
             if scoredDict[root][1]:
                 #name = "%s|GOOD" % (name)
@@ -435,7 +435,7 @@ def findGoodBadReadsWithPairedEnd(junctionBed, ungappedPairDbf, estBed):
                 #badOut.write("\t".join([chr, start, stop, name, score, strand, thStart, thStop, rgb, blockCount, blockSizes, blockStarts]))
                 #badOut.write("\n")
         
-    print "Found %s lines in the scored dict" % countFoundInScored
+    print("Found %s lines in the scored dict" % countFoundInScored)
     
     return goodNames, badNames
 
@@ -443,7 +443,7 @@ def testIfEst(ests, chr, start, blockCount, blockSizes, blockStarts, wiggle=0):
     """Determines whether the ests dictionary contains the junction described by the
     chr, start, blockCount, blockSizes."""
     if int(blockCount) != 2:
-        print "ERROR!  the block count isn't 2!  %s, %s, %s, %s, %s" % (chr, start, blockCount, blockSizes, blockStarts)
+        print("ERROR!  the block count isn't 2!  %s, %s, %s, %s, %s" % (chr, start, blockCount, blockSizes, blockStarts))
         return False
     
     (leftEdge, rightEdge) = hmmUtils.getEdges(start, blockSizes, blockStarts)
@@ -537,10 +537,10 @@ def vennDiagram(bed1File, bed2File, only1Output=None, only2Output=None, bothOutp
     if bothOutput:
         both = open(bothOutput, "w")
 
-    for chr, chrJunct in bed1.iteritems():
+    for chr, chrJunct in bed1.items():
         for (start,stop) in chrJunct:
-            if bed2.has_key(chr):
-                if bed2[chr].has_key( (start, stop) ):
+            if chr in bed2:
+                if (start, stop) in bed2[chr]:
                     if both:
                         for line in bed1[chr][(start,stop)]:
                             both.write(line)
@@ -567,9 +567,9 @@ def vennDiagram(bed1File, bed2File, only1Output=None, only2Output=None, bothOutp
                     out1.write("\n")
             
                 
-    count2 = sum( len(chrJunct) for chrJunct in bed2.values())
+    count2 = sum( len(chrJunct) for chrJunct in list(bed2.values()))
     if out2:
-        for chr, chrJunct in bed2.iteritems():
+        for chr, chrJunct in bed2.items():
             for (start,stop) in chrJunct:
                 line = bed2[chr][(start,stop)][0]
                 pieces = line.split()
@@ -578,7 +578,7 @@ def vennDiagram(bed1File, bed2File, only1Output=None, only2Output=None, bothOutp
                 out2.write("\t".join(str(x) for x in bedVals))
                 out2.write("\n")
     
-    print "There were %s in both, %s in the first one and %s in the second one" % (countBoth, count1, count2)
+    print("There were %s in both, %s in the first one and %s in the second one" % (countBoth, count1, count2))
 
 
 ##################################################################################################
@@ -602,8 +602,8 @@ def makeGeneDict(gffInput):
         mainPieces = line.split("\t")
 
         if len(mainPieces) != 9:
-            print "Illegal line found!  Ignoring this line:"
-            print line
+            print("Illegal line found!  Ignoring this line:")
+            print(line)
             continue
         
         if not mainPieces[2] == "exon" and not mainPieces[2] == "gene":
@@ -611,7 +611,7 @@ def makeGeneDict(gffInput):
 
         id, chromosome, strand, start, stop = parseGFFLine(mainPieces, isParent=mainPieces[2]=="gene")
 
-        if not d.has_key(id):
+        if id not in d:
             # this is a new id in the dictionary
             d[id] = [chromosome, strand, 0, 0, []]
             
@@ -635,7 +635,7 @@ def findGene(geneDict, chr, start, stop, blockSizes, blockStarts):
     junction defined by the chr, start, stop, blockSizes, and blockStarts, returns
     the gene record for the gene with that junction.  Returns None if none can be found.
     Will return the first one found, so the geneDict should not have overlapping genes."""
-    for id,(geneChr, strand, geneStart, geneStop, exons) in geneDict.iteritems():
+    for id,(geneChr, strand, geneStart, geneStop, exons) in geneDict.items():
         if geneChr != chr:
             continue
         
@@ -693,18 +693,18 @@ def measureRPKMperJunction(junctionBed, tophatRPKMresults, gffFile):
     histAll = {}
     minRPKM = 0
     maxRPKM = 0
-    print "reading in coverage per junction"
-    for gene, rpkm in coveragePerJunction.iteritems():
-        if not histAll.has_key(rpkm):
+    print("reading in coverage per junction")
+    for gene, rpkm in coveragePerJunction.items():
+        if rpkm not in histAll:
             histAll[rpkm] = 0
         histAll[rpkm] += 1
         minRPKM = min(minRPKM, rpkm)
         maxRPKM = max(maxRPKM, rpkm)
         
-    print "making gene dict"
+    print("making gene dict")
     geneDict = makeGeneDict(gffFile)
     
-    print "getting coverage per gene"
+    print("getting coverage per gene")
     histFound = {}
     for line in open(junctionBed):
         if line.startswith("track"):
@@ -713,37 +713,37 @@ def measureRPKMperJunction(junctionBed, tophatRPKMresults, gffFile):
         pieces = line.split()
         id = findGene(geneDict, pieces[0], int(pieces[1]), int(pieces[2]), pieces[10], pieces[11])
         if id:
-            if coveragePerJunction.has_key(id):
+            if id in coveragePerJunction:
                 rpkm = coveragePerJunction[id]
-                if not histFound.has_key(rpkm):
+                if rpkm not in histFound:
                     histFound[rpkm] = 0
                 histFound[rpkm] += 1
                 #print rpkm
 
     
-    print "printing results"
+    print("printing results")
     #for x in xrange(minRPKM, maxRPKM):
-    for x in xrange(0, 20):
+    for x in range(0, 20):
         allVal = 0
-        if histAll.has_key(x):
+        if x in histAll:
             allVal = histAll[x]
         foundVal = 0
-        if histFound.has_key(x):
+        if x in histFound:
             foundVal = histFound[x]
         if allVal > 0:
             percent = foundVal * 100.0 / allVal
         else:
             percent = "N/A"
-        print x, allVal, foundVal, percent
+        print(x, allVal, foundVal, percent)
         
     sumAll = 0
     sumFound = 0
-    for x in xrange(21, maxRPKM):
-        if histAll.has_key(x):
+    for x in range(21, maxRPKM):
+        if x in histAll:
             sumAll += histAll[x]
-        if histFound.has_key(x):
+        if x in histFound:
             sumFound += histFound[x]
-    print ">200", sumAll, sumFound, sumFound * 100.0 / sumAll
+    print(">200", sumAll, sumFound, sumFound * 100.0 / sumAll)
     
     
 def readTophatRPKM(tophatRPKMresults):
@@ -762,7 +762,7 @@ def readTophatRPKM(tophatRPKMresults):
         results[gene] = bin
 
 
-    print "The min rpkm was %s and the max was %s" % (minval, maxval)
+    print("The min rpkm was %s and the max was %s" % (minval, maxval))
     return results 
 
 

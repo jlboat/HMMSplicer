@@ -70,9 +70,9 @@ def seedReads(bowtieSeed, genomeDict, outputSeedFile, solexaFormat=False, colors
             [name, strand, chr, chrStart, seq, qual, x, mm] = line.split("\t")
             chrStart = int(chrStart)
         except ValueError:
-            print line
-            print line.split()
-            print len(line.split())
+            print(line)
+            print(line.split())
+            print(len(line.split()))
             raise hmmErrors.InvalidFileFormatException("Invalid line in junctionHMM.seedReads")
         
         numWritten = _processOneBowtieRead(seq, qual, chr, chrStart, strand, genomeDict, name, out, colorspaceFormat)
@@ -178,8 +178,8 @@ def _getObservationList(seedFile, numToRead=-1):
         try:
             [name, strand, readSeq, qual, genomeSeq, thisChr, start, stop, half, x, y] = line.split("\t")
         except ValueError:
-            print "Illegal line:", line
-            print line
+            print("Illegal line:", line)
+            print(line)
             raise hmmErrors.InvalidInputException("Invalid line in seedFile")
         
         obsStr, qual, start =_convertOneToObs(readSeq, qual, genomeSeq)
@@ -207,7 +207,7 @@ def _convertOneToObs(readSeq, qual, genomeSeq):
     qualList = hmmUtils.convertQualityStr(qual)
     qualList = [max(0, round(x, -1)/10) for x in qualList]
     isBegin = True
-    startSite = len(readSeq)/3 #0 #len(readSeq)/2
+    startSite = int(len(readSeq)/3) #0 #len(readSeq)/2
     for i in range(startSite, len(readSeq)):
         try:
             if readSeq[i] == genomeSeq[i]:
@@ -233,14 +233,14 @@ def trainHMM(inputFile, initialHMM, trainedHMM, numObs=100000):
             
         
     hmm = hmmWithQuality.HMM(STATE_LIST, OBSERVE_LIST, 5)
-    hmm.loadHMM(open(initialHMM))
+    hmm.loadHMM(open(initialHMM, 'rb'))
 
     hmm.multiple_learn(obsList, quals, 100, True)
 
-    print "Trained Values:"  
+    print("Trained Values:")  
     hmm.dump() 
     
-    hmm.saveHMM(open(trainedHMM, "w"))
+    hmm.saveHMM(open(trainedHMM, "wb"))
     
 def runHMM(inputFile, inputHMM, outputNoJunction, outputSmallJunction, outputJunction, anchorSize, chrName=None):
     """Runs the HMM on the input file using the inputHMM (which should be the trained HMM generated
@@ -257,7 +257,7 @@ def runHMM(inputFile, inputHMM, outputNoJunction, outputSmallJunction, outputJun
     """
     hmm = hmmWithQuality.HMM(STATE_LIST, OBSERVE_LIST, 5)
     inputHMM = inputHMM.replace("/", os.sep)
-    hmm.loadHMM(open(inputHMM))
+    hmm.loadHMM(open(inputHMM, 'rb'))
 
     outNo = open(outputNoJunction, "w")
     outSmall = open(outputSmallJunction, "w")
@@ -273,8 +273,8 @@ def runHMM(inputFile, inputHMM, outputNoJunction, outputSmallJunction, outputJun
         try:
             [name, strand, readSeq, qual, genomeSeq, thisChr, start, stop, half, x, y] = line.split("\t")
         except ValueError:
-            print "Illegal line:", line
-            print line
+            print("Illegal line:", line)
+            print(line)
             raise hmmErrors.InvalidFileFormatException("Invalid line in seed file.")
         
         if chrName:
@@ -297,9 +297,9 @@ def runHMM(inputFile, inputHMM, outputNoJunction, outputSmallJunction, outputJun
         try:
             traj = hmm.analyze(obs, quals)
         except:
-            print line
-            print obs
-            print quals
+            print(line)
+            print(obs)
+            print(quals)
             raise
             
         trajStr = "."*start + "".join(traj)
@@ -352,7 +352,7 @@ def matchSecondHalf(inputJunction, genomeDict, outputNotFound, outputMultiple, o
     for line in open(inputJunction):
         matchType = _matchOneLine(genomeDict, line, outNo, outMult, outJunct, outShort, minIntron, maxIntron, maxWiggle, 
                                   multiplier, anchorSize)
-        if not juncTypes.has_key(matchType):
+        if matchType not in juncTypes:
             juncTypes[matchType] = 0
         juncTypes[matchType] += 1
         
@@ -364,7 +364,7 @@ def _matchOneLine(genomeDict, line, outNo, outMult, outJunct, outShort, minIntro
     try:
         [name, strand, readSeq, qual, genomeSeq, chr, start, stop, half, score1, score2, splitPosition, trajStr] = line.split("\t")
     except ValueError:
-        print line
+        print(line)
         raise
     
     name, splitPosition, secondHalf, strand, isForward, start = _getParams(name, splitPosition, readSeq, strand, half, start)
@@ -486,7 +486,7 @@ def _getSeeds (splitPosition, secondHalf, genomeSeq, anchorSize):
             if nextLoc < 0:
                 break
             # already found this with the other seed
-            if allLocs.has_key(nextLoc - anchorSize):
+            if nextLoc - anchorSize in allLocs:
                 findStart = nextLoc + 1
                 continue
             
@@ -510,7 +510,7 @@ def _findBestKey(allLocs):
     """Finds the location of the best match within the set of all locations."""
     maxMatches = max(allLocs.values())
     bestIndexList = []
-    for k,v in allLocs.iteritems():
+    for k,v in allLocs.items():
         if v == maxMatches:
             bestIndexList.append(k)
 
@@ -711,10 +711,10 @@ def _scoreHalf(readSeq, genomeSeq, qual, useQuality=True):
     #genomeSeq = genomeSeq.upper()
     
     if len(readSeq) != len(genomeSeq):
-        print "Invalid input to _scoreHalf"
-        print readSeq
-        print genomeSeq
-        print qual
+        print("Invalid input to _scoreHalf")
+        print(readSeq)
+        print(genomeSeq)
+        print(qual)
         raise hmmErrors.UnexpectedException("Invalid input into _scoreHalf")
     
     total = 0
@@ -758,22 +758,22 @@ def removeDupReads(junctionBedIn, junctionBedOut, dupJuncBedOut=None):
         try:
             readName = line.split("\t")[3]
         except:
-            print "ERROR interpreting line %s" % count
-            print line
+            print("ERROR interpreting line %s" % count)
+            print(line)
             raise
         
         if readName == currentRead:
             currentLines.append(line)
         else:
             retType = _processOneReadSet(currentLines, out, dupOut)
-            if not classifications.has_key(retType):
+            if retType not in classifications:
                 classifications[retType] = 0
             classifications[retType] += 1
             currentRead = readName
             currentLines = [line]
             
     retType = _processOneReadSet(currentLines, out, dupOut)
-    if not classifications.has_key(retType):
+    if retType not in classifications:
         classifications[retType] = 0
     classifications[retType] += 1
     
@@ -885,7 +885,7 @@ def rescueMultipleSeeds(multipleFile, initialJunctions, outputFound, genomeDict,
         try:
             [name, strand, readSeq, qual, genomeSeq, chr, start, stop, half, score1, score2, splitPosition, trajStr] = line.split("\t")
         except ValueError:
-            print line
+            print(line)
             raise
     
         if name.find("|") >= 0:
@@ -902,7 +902,7 @@ def rescueMultipleSeeds(multipleFile, initialJunctions, outputFound, genomeDict,
         secondPosition = -1
         if isForward:
             firstEdge = start + splitPosition
-            if knownJunctionsLeft.has_key(chr) and knownJunctionsLeft[chr].has_key(firstEdge):
+            if chr in knownJunctionsLeft and firstEdge in knownJunctionsLeft[chr]:
                 for possibleRight in knownJunctionsLeft[chr][firstEdge]:
                     genomeSeq = genomeDict[chr][start:start+maxIntron+readLength]
                     if len(genomeSeq) == 0:
@@ -933,7 +933,7 @@ def rescueMultipleSeeds(multipleFile, initialJunctions, outputFound, genomeDict,
                 start = start - 1
                 firstEdge = start - splitPosition
                 
-            if knownJunctionsRight.has_key(chr) and knownJunctionsRight[chr].has_key(firstEdge):
+            if chr in knownJunctionsRight and firstEdge in knownJunctionsRight[chr]:
                 for possibleLeft in knownJunctionsRight[chr][firstEdge]:
                     if start > (maxIntron+readLength):
                         genomeSeq = hmmUtils.reverseComplement(genomeDict[chr][start-maxIntron-readLength:start])
@@ -1001,15 +1001,15 @@ def _createInitialJunctionDicts(initialJunctions):
         chr = pieces[0]
         leftEdge, rightEdge = hmmUtils.getEdges(int(pieces[1]), pieces[10], pieces[11])
         
-        if not knownJunctionsLeft.has_key(chr):
+        if chr not in knownJunctionsLeft:
             knownJunctionsLeft[chr] = {}
             knownJunctionsRight[chr] = {}
             
         if leftEdge < rightEdge:
-            if not knownJunctionsLeft[chr].has_key(leftEdge):
+            if leftEdge not in knownJunctionsLeft[chr]:
                 knownJunctionsLeft[chr][leftEdge] = []
             knownJunctionsLeft[chr][leftEdge].append(rightEdge)
-            if not knownJunctionsRight[chr].has_key(rightEdge):
+            if rightEdge not in knownJunctionsRight[chr]:
                 knownJunctionsRight[chr][rightEdge] = []
             knownJunctionsRight[chr][rightEdge].append(leftEdge)
         else:

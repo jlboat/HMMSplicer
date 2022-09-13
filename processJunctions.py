@@ -51,7 +51,7 @@ def divideByGTAG(inputBed, outputGood, outputBad, genome):
         try:
             [chr, start, stop, name, score, strand, thStart, thStop, rgb, blockCount, blockSizes, blockStarts] = line.split("\t")
         except:
-            print line
+            print(line)
             raise
         
         if int(blockCount) != 2:
@@ -68,7 +68,7 @@ def divideByGTAG(inputBed, outputGood, outputBad, genome):
         rightSeq = genome[chr][rightEdge-2:rightEdge]
         seq = "%s-%s" % (leftSeq, rightSeq)
         
-        if spliceDict.has_key(seq):
+        if seq in spliceDict:
             outGood.write(line)
         else:
             outBad.write(line)
@@ -145,8 +145,8 @@ def collapseCloseJunctions(inputBed, outputBed, withinBp):
     #   -- if the list is longer than 1, combine probabilities, adjust the name to include the number, and write 1
     out = open(outputBed, "w")
     out.write("track name=collapsedJunctions description='Junctions' useScore=1\n")
-    for chr, junctions in junct.iteritems():
-        for (leftEdge, x,rightEdge, y, intronLength), junctionList in junctions.iteritems():
+    for chr, junctions in junct.items():
+        for (leftEdge, x,rightEdge, y, intronLength), junctionList in junctions.items():
             if len(junctionList) == 1:
                 out.write(junctionList[0][1].strip())
                 #pieces = junctionList[0][0].split()
@@ -175,7 +175,7 @@ def _readAndCombine(inputBed, withinBp):
         
         [chr, start, stop, name, score, strand, thStart, thStop, rgb, blockCount, blockSizes, blockStarts] = line.split("\t")
         score = float(score)
-        if not junct.has_key(chr):
+        if chr not in junct:
             junct[chr] = {}
         
         if int(blockCount) != 2:
@@ -192,7 +192,7 @@ def _readAndCombine(inputBed, withinBp):
         intronLength = rightEdge - leftEdge
         
         toCombine = []
-        for (other) in junct[chr].keys():
+        for (other) in list(junct[chr].keys()):
             (otherMinLeft, otherMaxLeft, otherMinRight, otherMaxRight, otherLength) = other
             if otherLength != intronLength:
                 continue
@@ -254,7 +254,7 @@ def _combineLines(junctionList, leftEdge, rightEdge):
         elif strand == "-":
             countMinus += 1
         else:
-            print line
+            print(line)
             raise hmmErrors.InvalidInputException("ERROR!  strand value %s not valid. " % strand)
         
         name = pieces[3]
@@ -281,20 +281,20 @@ def _combineLines(junctionList, leftEdge, rightEdge):
             
         maxStop = max(maxStop, stop)
         
-        if not leftEdgeCount.has_key(leftEdge):
+        if leftEdge not in leftEdgeCount:
             leftEdgeCount[leftEdge] = 0
         leftEdgeCount[leftEdge] += 1
-        if not rightEdgeCount.has_key(rightEdge):
+        if rightEdge not in rightEdgeCount:
             rightEdgeCount[rightEdge] = 0
         rightEdgeCount[rightEdge] += 1
         
     maxLeft = max(leftEdgeCount.values())
-    for k, v in leftEdgeCount.iteritems():
+    for k, v in leftEdgeCount.items():
         if v == maxLeft:
             useLeft = k
             break
     maxRight = max(rightEdgeCount.values())
-    for k, v in rightEdgeCount.iteritems():
+    for k, v in rightEdgeCount.items():
         if v == maxRight:
             useRight = k
             break
@@ -339,7 +339,7 @@ def readJunctionsFromBed(inputBed, saveWholeLine=False, wiggle=3):
             continue
         
         [chr, start, stop, name, score, strand, thStart, thStop, rgb, blockCount, blockSizes, blockStarts] = line.split()
-        if not junct.has_key(chr):
+        if chr not in junct:
             junct[chr] = {}
             
         start = int(start)
@@ -355,7 +355,7 @@ def readJunctionsFromBed(inputBed, saveWholeLine=False, wiggle=3):
             leftEdge = start + starts[i-1] + sizes[i-1]
             rightEdge = start + starts[i]  
             if saveWholeLine:
-                if not junct[chr].has_key((leftEdge, rightEdge)):
+                if (leftEdge, rightEdge) not in junct[chr]:
                     junct[chr][(leftEdge, rightEdge)] = []
                 junct[chr][(leftEdge, rightEdge)].append(line.strip())
             else:
@@ -363,7 +363,7 @@ def readJunctionsFromBed(inputBed, saveWholeLine=False, wiggle=3):
                     found = False
                     for wL in range(-wiggle,wiggle):
                         for wR in range(-wiggle,wiggle):
-                            if junct[chr].has_key( (leftEdge+wL, rightEdge+wR)):
+                            if (leftEdge+wL, rightEdge+wR) in junct[chr]:
                                 found = True
                                 break
                     if not found:
@@ -378,7 +378,7 @@ def hasJunction(junc, chr, leftEdge, rightEdge, wiggle):
     for i in range(leftEdge-wiggle, leftEdge+wiggle+1):
         for j in range(rightEdge-wiggle, rightEdge+wiggle+1):
             try:
-                if junc[chr].has_key( (i, j) ):
+                if (i, j) in junc[chr]:
                     return True
             except KeyError:
                 return False
@@ -397,7 +397,7 @@ def readGeneModelsBed(inputBed):
     for line in open(inputBed):
         [chr, start, stop, name, score, strand, x, y, z, blockCount, blockSizes, blockStarts] = line.split()
         
-        if not d.has_key(chr):
+        if chr not in d:
             d[chr] = []
             
         blockCount = int(blockCount)
@@ -415,7 +415,7 @@ def readGeneModelsBed(inputBed):
             leftEdge = blockStartList[i-1] + blockSizeList[i-1]
             #print "        ", rightEdge, leftEdge
             
-            if d[chr].has_key( (leftEdge, rightEdge) ):
+            if (leftEdge, rightEdge) in d[chr]:
                 continue
             
             d[chr][(leftEdge, rightEdge)] = (name+"_"+str(i-1), 1000)
